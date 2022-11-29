@@ -75,18 +75,11 @@ def main():
         
         left = image[:, :width]
         left_gray = cv2.cvtColor(left, cv2.COLOR_BGR2GRAY)
-        # Idea to circular crop image for unglued images to remove
-        # LED artifact at the bottom
-        # Currently not working well as it introduces a sharp gradient
-        mask = np.zeros(left.shape[:2], dtype="uint8")
-        cv2.circle(mask, (xc,yc), radius2, 255, -1)
-        left_gray_crop = cv2.bitwise_and(left_gray, left_gray, mask=mask)
         left_fm = variance_of_laplacian(left_gray)
         left_gray_holes = findHoles(left_gray)
         
         right = image[:, width:]
         right_gray = cv2.cvtColor(right, cv2.COLOR_BGR2GRAY)
-        right_gray_crop = cv2.bitwise_and(right_gray, right_gray, mask=mask)
         right_fm = variance_of_laplacian(right_gray)
         right_gray_holes = findHoles(right_gray)
         
