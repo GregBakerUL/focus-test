@@ -11,6 +11,29 @@ def variance_of_laplacian(image):
 	# measure, which is simply the variance of the Laplacian
 	return cv2.Laplacian(image, cv2.CV_64F).var()
 
+def findHoles(img, minArea = 10):
+    """Find all dark colored blobs in the image"""
+    # Set up the SimpleBlobdetector with default parameters.
+    params = cv2.SimpleBlobDetector_Params()
+    # Change thresholds
+    params.minThreshold = 10;
+    params.maxThreshold = 200;
+    # Filter by Area
+    params.filterByArea = True
+    params.minArea = minArea
+    # Don't filter by Circularity
+    params.filterByCircularity = True
+    params.minCircularity = 0.6
+    # Filter by Convexity
+    params.filterByConvexity = True
+    params.minConvexity = 0.5
+    # Filter by Inertia
+    params.filterByInertia = True
+    params.minInertiaRatio = 0.25
+    detector = cv2.SimpleBlobDetector_create(params)
+    return detector.detect(img)
+
+
 def main():
     # construct the argument parse and parse the arguments
     ap = argparse.ArgumentParser()
@@ -59,11 +82,13 @@ def main():
         cv2.circle(mask, (xc,yc), radius2, 255, -1)
         left_gray_crop = cv2.bitwise_and(left_gray, left_gray, mask=mask)
         left_fm = variance_of_laplacian(left_gray)
+        left_gray_holes = findHoles(left_gray)
         
         right = image[:, width:]
         right_gray = cv2.cvtColor(right, cv2.COLOR_BGR2GRAY)
         right_gray_crop = cv2.bitwise_and(right_gray, right_gray, mask=mask)
         right_fm = variance_of_laplacian(right_gray)
+        right_gray_holes = findHoles(right_gray)
         
         # if the focus measure is less than the supplied threshold,
         # then the image should be considered "blurry"
@@ -71,11 +96,15 @@ def main():
         #	text = "Blurry"
         # show the image
         if show_images:
-            cv2.putText(left_gray, "{:.2f}".format(left_fm), (10, 30),
+            cv2.putText(left_gray, "LapVar: {:.2f}".format(left_fm), (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.8, 255, 3)
+            cv2.putText(left_gray, "Holes: {0}".format(len(left_gray_holes)), (350, 30),
             cv2.FONT_HERSHEY_SIMPLEX, 0.8, 255, 3)
             cv2.imshow("left", left_gray)
             
-            cv2.putText(right_gray, "{:.2f}".format(right_fm), (10, 30),
+            cv2.putText(right_gray, "LapVar: {:.2f}".format(right_fm), (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.8, 255, 3)
+            cv2.putText(right_gray, "Holes: {0}".format(len(right_gray_holes)), (350, 30),
             cv2.FONT_HERSHEY_SIMPLEX, 0.8, 255, 3)
             cv2.imshow("right", right_gray)
             
