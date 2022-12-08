@@ -58,7 +58,7 @@ def main():
 
     side_label = ["left", "right"]
     labels= []
-    fm_av = [],[]
+    fm_av = [],[],[]
     fm_av_sensor_left = []
     fm_av_sensor_right = []
     
@@ -74,8 +74,10 @@ def main():
         label = image_path.split('\\')[8].split('FFFF0000')[1]
         if label not in labels:
             if len(labels) > 0:
-                fm_av[0].append(statistics.fmean(fm_av_sensor_left))
-                fm_av[1].append(statistics.fmean(fm_av_sensor_right))
+                fm_av[0].append(labels[-1])
+                fm_av[1].append(statistics.mean(fm_av_sensor_left))
+                fm_av[2].append(statistics.mean(fm_av_sensor_right))
+                
                 
             print(label)
             labels.append(label)
@@ -88,8 +90,17 @@ def main():
         fm_av_sensor_left.append(fm[0])
         fm_av_sensor_right.append(fm[1])      
     
-    fm_av[0].append(statistics.fmean(fm_av_sensor_left))
-    fm_av[1].append(statistics.fmean(fm_av_sensor_right))
+    fm_av[0].append(labels[-1])
+    fm_av[1].append(statistics.mean(fm_av_sensor_left))
+    fm_av[2].append(statistics.mean(fm_av_sensor_right))
+    
+
+    # opening the csv file in 'w+' mode
+    file = open('output.csv', 'w+', newline ='')
+    
+    with file:   
+        write = csv.writer(file)
+        write.writerows(fm_av)
 
     x_scatter = np.linspace(1, len(fm_av[0]), len(fm_av[0]))
 
@@ -97,18 +108,18 @@ def main():
     plt.xlabel('Sensor')
     plt.ylabel('Focus [a.u.]')
     plt.title('Sensor focus level')
-    plt.xticks(x_scatter, labels)
+    plt.xticks(x_scatter, fm_av[0])
     plt.xticks(rotation=90)
-    ax.scatter(x_scatter, fm_av[0], s=8, label= "Left")
-    ax.scatter(x_scatter, fm_av[1], s=8, label="Right")
+    ax.scatter(x_scatter, fm_av[1], s=8, label= "Left")
+    ax.scatter(x_scatter, fm_av[2], s=8, label="Right")
     ax.legend()
     ax.grid(True)
     fig.savefig("plots/scatter.png")
     
     
     fig1, ax1 = plt.subplots()
-    sns.kdeplot(data=fm_av[0], ax=ax1, label="Left")
-    sns.kdeplot(data=fm_av[1], ax=ax1, label="Right")
+    sns.kdeplot(data=fm_av[1], ax=ax1, label="Left")
+    sns.kdeplot(data=fm_av[2], ax=ax1, label="Right")
     ax1.legend()
     fig1.savefig("plots/distribution.png")
     plt.show()
