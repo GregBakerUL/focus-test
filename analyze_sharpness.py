@@ -3,9 +3,11 @@ from imutils import paths
 import argparse
 import cv2
 import matplotlib.pyplot as plt
+from matplotlib import colors
 import numpy as np
 import seaborn as sns
 import statistics
+import pandas
 import sys
 import csv
 
@@ -58,9 +60,9 @@ def main():
 
     side_label = ["left", "right"]
     labels= []
-    fm_av = [],[]
-    fm_av_sensor_left = []
-    fm_av_sensor_right = []
+    fm_av = [],[],[]
+    fm_sensor_left = []
+    fm_sensor_right = []
     
     display_images = False
     
@@ -74,22 +76,35 @@ def main():
         label = image_path.split('\\')[8].split('FFFF0000')[1]
         if label not in labels:
             if len(labels) > 0:
-                fm_av[0].append(statistics.fmean(fm_av_sensor_left))
-                fm_av[1].append(statistics.fmean(fm_av_sensor_right))
+                fm_av_sensor_left = statistics.fmean(fm_sensor_left)
+                fm_av_sensor_right = statistics.fmean(fm_sensor_right)
+                fm_av[0].append(fm_av_sensor_left)
+                fm_av[1].append(fm_av_sensor_right)
+                fm_av[2].append((fm_av_sensor_left + fm_av_sensor_right)/2)
                 
             print(label)
             labels.append(label)
-            fm_av_sensor_left = []
-            fm_av_sensor_right = []
+            fm_sensor_left = []
+            fm_sensor_right = []
         
         fm = process_side_by_side_image(image_path)
         if display_images and max(fm) < args["threshold"]:
             display_image(image_path, fm, label)
-        fm_av_sensor_left.append(fm[0])
-        fm_av_sensor_right.append(fm[1])      
+        fm_sensor_left.append(fm[0])
+        fm_sensor_right.append(fm[1])
+
+    fm_av_sensor_left = statistics.fmean(fm_sensor_left)
+    fm_av_sensor_right = statistics.fmean(fm_sensor_right)
+    fm_av[0].append(fm_av_sensor_left)
+    fm_av[1].append(fm_av_sensor_right)
+    fm_av[2].append((fm_av_sensor_left + fm_av_sensor_right)/2)
     
-    fm_av[0].append(statistics.fmean(fm_av_sensor_left))
-    fm_av[1].append(statistics.fmean(fm_av_sensor_right))
+    fm_av_df = pandas.DataFrame(fm_av)
+    fm_av_df = fm_av_df.transpose()
+    fm_av_df.index = labels
+    fm_av_df.columns = ['fm_left', 'fm_right', 'fm_average']
+    fm_av_df.sort_values(by=fm_av_df.columns[2], inplace=True)
+    print(fm_av_df.head())
 
     x_scatter = np.linspace(1, len(fm_av[0]), len(fm_av[0]))
 
@@ -97,10 +112,11 @@ def main():
     plt.xlabel('Sensor')
     plt.ylabel('Focus [a.u.]')
     plt.title('Sensor focus level')
-    plt.xticks(x_scatter, labels)
+    plt.xticks(x_scatter, fm_av_df.index)
     plt.xticks(rotation=90)
-    ax.scatter(x_scatter, fm_av[0], s=8, label= "Left")
-    ax.scatter(x_scatter, fm_av[1], s=8, label="Right")
+    ax.scatter(x_scatter, fm_av_df['fm_left'], s=8, label= "Left")
+    ax.scatter(x_scatter, fm_av_df['fm_right'], s=8, label="Right")
+    ax.scatter(x_scatter, fm_av_df['fm_average'], s=8, label="Average", color='lightgray')
     ax.legend()
     ax.grid(True)
     fig.savefig("plots/scatter.png")
