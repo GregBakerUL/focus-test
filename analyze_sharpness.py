@@ -94,7 +94,7 @@ def main():
     
     fm_av_df = pandas.DataFrame(fm_av)
     # fm_av_df = fm_av_df.transpose()
-    fm_av_df.index = counters
+    fm_av_df.index = labels
     fm_av_df.sort_values(by=fm_av_df.columns[0], inplace=True)
     print(fm_av_df.head())
     
