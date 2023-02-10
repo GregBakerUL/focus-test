@@ -11,11 +11,15 @@ import argparse
 class LaplacianVarianceImage():
 
     def __init__(self, image, name):
-        self.image = image
+        self.image = self.remove_embedded_line(image)
         self.laplacian = cv2.Laplacian(self.image, cv2.CV_64F)
         self.name = name
         self.laplacian_variance = self.laplacian_variance()
         
+    def remove_embedded_line(self, image):
+        image[-1, :] = image[-2, :]
+        return image
+
     def display_image(self):
         plt.imshow(self.image, cmap='gray')
         plt.title(self.name)
@@ -39,7 +43,7 @@ class LaplacianVarianceImage():
     
 class LaplacianVarianceGroup():
     
-    def __init__(self, image_dir, name="", stereo=False):
+    def __init__(self, image_dir, name="", stereo=False, output_path=None):
         self.image_dir = image_dir
         self.name = name
         self.image_paths = paths.list_images(image_dir)
@@ -58,6 +62,8 @@ class LaplacianVarianceGroup():
                 image_name = path.split(os.path.sep)[-1].split(".")[0]
                 self.images.append(LaplacianVarianceImage(image, image_name))
         self.images_sorted = self.sort_by_focus()
+        if output_path is not None:
+            self.ouput_focus_scores(output_path)
     
     def split_stereo_image(self, image_path):
         image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
@@ -87,6 +93,12 @@ class LaplacianVarianceGroup():
         if plot:
             plt.show()
         return ax
+    
+    def ouput_focus_scores(self, output_path):
+        with open(output_path, "a") as f:
+            f.write(self.name + "\n")
+            for image in self.images:
+                f.write(image.name + "," + str(image.laplacian_variance) + "\n")
         
 class LaplacianVarianceGroupComparison():
     
@@ -96,7 +108,9 @@ class LaplacianVarianceGroupComparison():
     def add_image_group(self, image_group):
         self.image_groups.append(image_group)
         
-    def add_image_dir(self, image_dir, name="", stereo=False):
+    def add_image_dir(self, image_dir, name=None, stereo=False):
+        if name is None:
+            name = image_dir.split(os.path.sep)[-1]
         image_group = LaplacianVarianceGroup(image_dir, name=name, stereo=stereo)
         self.image_groups.append(image_group)
     
@@ -126,6 +140,14 @@ class LaplacianVarianceGroupComparison():
             for image in image_group.images_sorted:
                 print(image.name, image.laplacian_variance)
             print("")
+            
+    def ouput_focus_scores(self, output_path):
+        with open(output_path, "w") as f:
+            f.write("")
+        for image_group in self.image_groups:
+            image_group.ouput_focus_scores(output_path)
+        with open(output_path, "a") as f:
+            f.write("\n")
     
         
     
@@ -152,5 +174,6 @@ if __name__ == "__main__":
         image_group = LaplacianVarianceGroup(args.image_directory)
         image_group.plot_focus_scatter()
         image_group.plot_focus_kde()
+        image_group.ouput_focus_scores("./focus_scores.csv")
 
     

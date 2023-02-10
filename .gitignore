@@ -1,3 +1,5 @@
 .vscode/
 halt
 plots/
+*.csv
+__pycache__*
