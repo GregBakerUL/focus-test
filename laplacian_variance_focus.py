@@ -60,6 +60,7 @@ class LaplacianVarianceGroup():
             for path in self.image_paths:
                 image = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
                 image_name = path.split(os.path.sep)[-1].split(".")[0]
+                image_name = image_name.split("_")[0][-2:] + "_" + image_name.split("_")[-1]
                 self.images.append(LaplacianVarianceImage(image, image_name))
         self.images_sorted = self.sort_by_focus()
         if output_path is not None:

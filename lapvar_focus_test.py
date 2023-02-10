@@ -9,13 +9,12 @@ from laplacian_variance_focus import LaplacianVarianceGroupComparison
 focus_group_comparison = LaplacianVarianceGroupComparison()
 
 
-focus_group_comparison.add_image_dir("C:/Users/GregBaker/Box/Tracking Cameras Team/Test Data/Ganymede Beta Development/Focus and Brightness Tests/2023_01_10_gredmann_mtf_analysis_2.1/55_40/isp_off", name="55_40")
-focus_group_comparison.add_image_dir("C:/Users/GregBaker/Box/Tracking Cameras Team/Test Data/Ganymede Beta Development/Focus and Brightness Tests/2023_01_10_gredmann_mtf_analysis_2.1/55_35/isp_off", name="55_35")
-focus_group_comparison.add_image_dir("C:/Users/GregBaker/Box/Tracking Cameras Team/Test Data/Ganymede Beta Development/Focus and Brightness Tests/2023_01_10_gredmann_mtf_analysis_2.1/50_40/isp_off", name="50_40")
+focus_group_comparison.add_image_dir(r"C:\Users\GregBaker\Box\Reliability (RG)\Ganymede\Images HALT on 50 Ganymedes\Ganymede HALT on 50 devices\22-12-2022 (Pre-test)", name="Pre-HALT")
+focus_group_comparison.add_image_dir(r"C:\Users\GregBaker\Box\Reliability (RG)\Ganymede\Images HALT on 50 Ganymedes\Ganymede HALT on 50 devices\07-02-2023 (6th-last read point)", name="Post-HALT")
 
 focus_group_comparison.plot_focus_scatter()
 focus_group_comparison.plot_focus_kde()
-focus_group_comparison.print_focus_stats()
+focus_group_comparison.ouput_focus_scores("./focus_scores.csv")
 
 
 # %%
